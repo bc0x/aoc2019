@@ -10,15 +10,15 @@ const day1part1 = (data = []) => {
 const day1part2 = (data) => {
   return data.reduce((acc, item) => {
     const fuelNeeded = calculateFuel(item, true);
-    return fuelNeeded > 0 ? acc + fuelNeeded : acc;
+    return acc + fuelNeeded;
   }, 0);
 }
 
 const calculateFuel = (fuel, fuelForFuel = false) => {
-  if ((Math.floor((fuel / 3)) - 2) <= 0) {
+  const fuelNeeded = Math.floor((fuel / 3)) - 2;
+  if (fuelNeeded <= 0) {
     return 0;
   }
-  const fuelNeeded = Math.floor((fuel / 3)) - 2;
   return fuelForFuel ? fuelNeeded + calculateFuel(fuelNeeded, true) : fuelNeeded;
 }
 
