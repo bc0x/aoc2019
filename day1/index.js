@@ -1,7 +1,6 @@
 const parse = require("../dataLoader").parse;
 
 const day1part1 = (data = []) => {
-  data = data.split("\n").map(Number);
   return data.reduce((acc, item) => {
     const fuelNeeded = calculateFuel(item);
     return fuelNeeded > 0 ? acc + fuelNeeded : acc;
@@ -9,7 +8,6 @@ const day1part1 = (data = []) => {
 }
 
 const day1part2 = (data) => {
-  data = data.split("\n").map(Number);
   return data.reduce((acc, item) => {
     const fuelNeeded = calculateFuel(item, true);
     return fuelNeeded > 0 ? acc + fuelNeeded : acc;
@@ -24,6 +22,6 @@ const calculateFuel = (fuel, fuelForFuel = false) => {
   return fuelForFuel ? fuelNeeded + calculateFuel(fuelNeeded, true) : fuelNeeded;
 }
 
-const data = parse(`${__dirname}/data.txt`);
+const data = parse(`${__dirname}/data.txt`).split("\n").map(Number);
 console.log(`Day 1 Part 1 -- ${day1part1(data)}`);
 console.log(`Day 1 Part 2 -- ${day1part2(data)}`);
