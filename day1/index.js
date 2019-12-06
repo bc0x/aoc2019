@@ -3,7 +3,7 @@ const parse = require("../dataLoader").parse;
 const day1part1 = (data = []) => {
   return data.reduce((acc, item) => {
     const fuelNeeded = calculateFuel(item);
-    return fuelNeeded > 0 ? acc + fuelNeeded : acc;
+    return acc + fuelNeeded;
   }, 0);
 }
 
