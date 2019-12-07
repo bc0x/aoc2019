@@ -1,5 +1,5 @@
 var fs = require('fs');
-const parse = (filePath) => fs.readFileSync(filePath).toString();
+const parse = filePath => fs.readFileSync(filePath).toString();
 module.exports = {
-  parse
+  parse,
 };
