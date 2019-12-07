@@ -7,7 +7,7 @@ const day1part1 = (data = []) => {
   }, 0);
 }
 
-const day1part2 = (data) => {
+const day1part2 = (data = []) => {
   return data.reduce((acc, item) => {
     const fuelNeeded = calculateFuel(item, true);
     return acc + fuelNeeded;
