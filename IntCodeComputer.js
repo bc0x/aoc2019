@@ -32,7 +32,7 @@ const createComputer = data => {
           this.data[this.pointer]
         );
         if ([1, 2, 7, 8].includes(opCode)) {
-          let [inputIdx1, inputIdx2, outputIdx, ...rest] = this.data.slice(
+          let [inputIdx1, inputIdx2, outputIdx] = this.data.slice(
             this.pointer + 1
           );
           this.pointer += 4;
@@ -42,18 +42,16 @@ const createComputer = data => {
             mode2 ? inputIdx2 : this.data[inputIdx2]
           );
         } else if (opCode === 3) {
-          let [outputIdx, ...rest] = this.data.slice(this.pointer + 1);
+          let [outputIdx] = this.data.slice(this.pointer + 1);
           this.pointer += 2;
           this.data[outputIdx] = this.inputs.shift();
         } else if (opCode === 4) {
-          let [outputIdx, ...rest] = this.data.slice(this.pointer + 1);
+          let [outputIdx] = this.data.slice(this.pointer + 1);
           this.pointer += 2;
           this.output = mode1 ? outputIdx : this.data[outputIdx];
           return this.output;
         } else if ([5, 6].includes(opCode)) {
-          let [inputIdx1, inputIdx2, ...rest] = this.data.slice(
-            this.pointer + 1
-          );
+          let [inputIdx1, inputIdx2] = this.data.slice(this.pointer + 1);
           this.pointer = this.calculate(
             opCode,
             mode1 ? inputIdx1 : this.data[inputIdx1],
