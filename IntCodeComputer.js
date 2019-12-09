@@ -28,7 +28,7 @@ const createComputer = data => {
     compute(inputValue) {
       this.inputs.push(inputValue);
       while (this.pointer < this.data.length) {
-        let { opCode, mode1, mode2, mode3 } = this.getInstruction(
+        let { opCode, mode1, mode2 } = this.getInstruction(
           this.data[this.pointer]
         );
         if ([1, 2, 7, 8].includes(opCode)) {
