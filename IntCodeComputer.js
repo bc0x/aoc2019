@@ -28,11 +28,11 @@ const createComputer = data => {
     compute(inputValue) {
       this.inputs.push(inputValue);
       while (this.pointer < this.data.length) {
-        let { opCode, mode1, mode2 } = this.getInstruction(
+        const { opCode, mode1, mode2 } = this.getInstruction(
           this.data[this.pointer]
         );
         if ([1, 2, 7, 8].includes(opCode)) {
-          let [inputIdx1, inputIdx2, outputIdx] = this.data.slice(
+          const [inputIdx1, inputIdx2, outputIdx] = this.data.slice(
             this.pointer + 1
           );
           this.pointer += 4;
@@ -42,16 +42,16 @@ const createComputer = data => {
             mode2 ? inputIdx2 : this.data[inputIdx2]
           );
         } else if (opCode === 3) {
-          let [outputIdx] = this.data.slice(this.pointer + 1);
+          const [outputIdx] = this.data.slice(this.pointer + 1);
           this.pointer += 2;
           this.data[outputIdx] = this.inputs.shift();
         } else if (opCode === 4) {
-          let [outputIdx] = this.data.slice(this.pointer + 1);
+          const [outputIdx] = this.data.slice(this.pointer + 1);
           this.pointer += 2;
           this.output = mode1 ? outputIdx : this.data[outputIdx];
           return this.output;
         } else if ([5, 6].includes(opCode)) {
-          let [inputIdx1, inputIdx2] = this.data.slice(this.pointer + 1);
+          const [inputIdx1, inputIdx2] = this.data.slice(this.pointer + 1);
           this.pointer = this.calculate(
             opCode,
             mode1 ? inputIdx1 : this.data[inputIdx1],
