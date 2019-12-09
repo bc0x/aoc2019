@@ -1,17 +1,18 @@
 const parse = require('../dataLoader').parse;
+const createComputer = require('../IntCodeComputer').createComputer;
 
-const day7part1 = async (data = []) => {
+const day7part1_bruteForce = (data = []) => {
   const thusterOutput = new Map();
   for (let a = 0; a <= 4; a++) {
-    const outputA = intCodeComputer(data, a, 0);
+    const outputA = intCodeComputer(data, [a, 0]);
     for (let b = 0; b <= 4; b++) {
-      const outputB = intCodeComputer(data, b, outputA);
+      const outputB = intCodeComputer(data, [b, outputA]);
       for (let c = 0; c <= 4; c++) {
-        const outputC = intCodeComputer(data, c, outputB);
+        const outputC = intCodeComputer(data, [c, outputB]);
         for (let d = 0; d <= 4; d++) {
-          const outputD = intCodeComputer(data, d, outputC);
+          const outputD = intCodeComputer(data, [d, outputC]);
           for (let e = 0; e <= 4; e++) {
-            const signal = intCodeComputer(data, e, outputD);
+            const signal = intCodeComputer(data, [e, outputD]);
             const sequence = `${a}${b}${c}${d}${e}`;
             thusterOutput.set(sequence, signal);
           }
@@ -45,66 +46,166 @@ const day7part1 = async (data = []) => {
   return `${result.sequence} - ${result.signal}`;
 };
 
-const day7part2 = async (data = []) => {
-  return 0;
+const day7part1 = (data = []) => {
+  const thusterOutput = new Map();
+  let sequences = [...Array(43211 - 01234).keys()].map(i => i + 01234);
+  sequences = sequences
+    .filter(sequence => {
+      const set = new Set([...String(sequence).padStart(5, '0')]);
+      if (set.size === 5 && [...set].every(d => Number(d) <= 4)) {
+        return sequence;
+      }
+    })
+    .map(i => String(i).padStart(5, '0'));
+
+  sequences.forEach(sequence => {
+    let [a, b, c, d, e] = [...String(sequence)].map(Number);
+    let output = 0;
+    [a, b, c, d, e].forEach(input => {
+      output = intCodeComputer2(data, [input, output]);
+    });
+    thusterOutput.set(`${a}${b}${c}${d}${e}`, output);
+  });
+
+  const result = [...thusterOutput.entries()].reduce(
+    (acc, [sequence, signal]) => {
+      return signal > acc.signal
+        ? {
+            sequence,
+            signal,
+          }
+        : acc;
+    },
+    {
+      sequence: 0,
+      signal: 0,
+    }
+  );
+  return `${result.sequence} - ${result.signal}`;
 };
 
-const intCodeComputer = (data, userInput, prevOutput) => {
-  let outputData = [...data];
-  let pointer = outputData.length - data.length;
-  let jump = false;
-  let init = true;
+const day7part1_refactor = (data = []) => {
+  const thusterOutput = new Map();
+  let sequences = [...Array(43211 - 01234).keys()].map(i => i + 01234);
+  sequences = sequences
+    .filter(sequence => {
+      const set = new Set([...String(sequence).padStart(5, '0')]);
+      if (set.size === 5 && [...set].every(d => Number(d) <= 4)) {
+        return sequence;
+      }
+    })
+    .map(i => String(i).padStart(5, '0'));
+
+  sequences.forEach(sequence => {
+    let [a, b, c, d, e] = [...String(sequence)].map(Number);
+    let output = 0;
+    [a, b, c, d, e].forEach(input => {
+      const computer = createComputer(data);
+      computer.inputs.push(input);
+      output = computer.compute(output);
+    });
+    thusterOutput.set(`${a}${b}${c}${d}${e}`, output);
+  });
+
+  const result = [...thusterOutput.entries()].reduce(
+    (acc, [sequence, signal]) => {
+      return signal > acc.signal
+        ? {
+            sequence,
+            signal,
+          }
+        : acc;
+    },
+    {
+      sequence: 0,
+      signal: 0,
+    }
+  );
+  return `${result.sequence} - ${result.signal}`;
+};
+
+const day7part2 = (data = []) => {
+  const thusterOutput = new Map();
+  let sequences = [...Array(98766 - 56789).keys()].map(i => i + 56789);
+  sequences = sequences.filter(sequence => {
+    const set = new Set([...String(sequence)]);
+    if (set.size === 5) {
+      return sequence;
+    }
+  });
+
+  sequences.forEach(sequence => {
+    let [a, b, c, d, e] = [...String(sequence)].map(Number);
+    const amplifiers = [...Array(5).keys()].map(i => createComputer(data));
+    let output = 0;
+    amplifiers.forEach((computer, i) => {
+      const sequenceInput = Number([...String(sequence)][i]);
+      computer.inputs.push(sequenceInput);
+    });
+    let [ampA, ampB, ampC, ampD, ampE] = amplifiers;
+    while (ampE.halted === false) {
+      for (amplifier of amplifiers) {
+        output = amplifier.compute(output);
+      }
+    }
+    thusterOutput.set(`${a}${b}${c}${d}${e}`, output);
+  });
+
+  const result = [...thusterOutput.entries()].reduce(
+    (acc, [sequence, signal]) => {
+      return signal > acc.signal
+        ? {
+            sequence,
+            signal,
+          }
+        : acc;
+    },
+    {
+      sequence: 0,
+      signal: 0,
+    }
+  );
+  return `${result.sequence} - ${result.signal}`;
+};
+
+const intCodeComputer2 = (data, inputs = []) => {
+  let pointer = 0;
   let diagnosticCode = 0;
-  while (data.length >= 1) {
-    let [_, ...rest] = data; // pull off opCode
-    let code = outputData[pointer]; // get opCode from the mutated data
-    let { opCode, param1, param2, param3 } = getInstruction(code); // get instruction from code
-    data = rest; // reset data after pulling off args
+  let done = false;
+  while (true) {
+    let { opCode, mode1, mode2, mode3 } = getInstruction(data[pointer]);
     if ([1, 2, 7, 8].includes(opCode)) {
-      let [inputIdx1, inputIdx2, outputIdx, ...rest] = data;
-      data = rest; // reset data after pulling off args
-      outputData[outputIdx] = calculate(
+      let [inputIdx1, inputIdx2, outputIdx, ...rest] = data.slice(pointer + 1);
+      pointer += 4;
+      data[outputIdx] = calculate(
         opCode,
-        param1 ? inputIdx1 : outputData[inputIdx1],
-        param2 ? inputIdx2 : outputData[inputIdx2]
+        mode1 ? inputIdx1 : data[inputIdx1],
+        mode2 ? inputIdx2 : data[inputIdx2]
       );
     } else if (opCode === 3) {
-      let [outputIdx, ...rest] = data;
-      data = rest; // reset data after pulling off args
-      if (init) {
-        outputData[outputIdx] = userInput;
-        init = false;
-      } else {
-        outputData[outputIdx] = prevOutput;
-      }
+      let [outputIdx, ...rest] = data.slice(pointer + 1);
+      pointer += 2;
+      data[outputIdx] = inputs.shift();
     } else if (opCode === 4) {
-      let [outputIdx, ...rest] = data;
-      data = rest; // reset data after pulling off args
-      diagnosticCode = param1 ? outputIdx : outputData[outputIdx];
+      let [outputIdx, ...rest] = data.slice(pointer + 1);
+      pointer += 2;
+      diagnosticCode = mode1 ? outputIdx : data[outputIdx];
+      return diagnosticCode;
     } else if ([5, 6].includes(opCode)) {
-      let [inputIdx1, inputIdx2, ...rest] = data;
-      data = rest; // reset data after pulling off args
-      jump = true;
+      let [inputIdx1, inputIdx2, ...rest] = data.slice(pointer + 1);
       pointer = calculate(
         opCode,
-        param1 ? inputIdx1 : outputData[inputIdx1],
-        param2 ? inputIdx2 : outputData[inputIdx2]
+        mode1 ? inputIdx1 : data[inputIdx1],
+        mode2 ? inputIdx2 : data[inputIdx2],
+        (pointer += 3)
       );
     } else if (opCode === 99) {
+      done = true;
       return diagnosticCode;
     } else {
       console.log('unknown opcode', opCode);
       break;
     }
-
-    //refesh data with mutations
-    if (jump && pointer !== undefined) {
-      data = outputData.slice(pointer);
-    } else {
-      data = outputData.slice(outputData.length - data.length);
-    }
-    jump = false;
-    pointer = outputData.length - data.length;
   }
 };
 
@@ -115,17 +216,17 @@ const getInstruction = opCode => {
   });
   return {
     opCode: Number([instructionArray[3], instructionArray[4]].join('')),
-    param1: Boolean(Number(instructionArray[2])), // 0 = postition, 1 = immediate
-    param2: Boolean(Number(instructionArray[1])),
-    param3: Boolean(Number(instructionArray[0])),
+    mode1: Boolean(Number(instructionArray[2])), // 0 = postition, 1 = immediate
+    mode2: Boolean(Number(instructionArray[1])),
+    mode3: Boolean(Number(instructionArray[0])),
   };
 };
 
-const calculate = (opCode, x, y) => {
+const calculate = (opCode, x, y, pointer) => {
   if (opCode === 1) return x + y;
   if (opCode === 2) return x * y;
-  if (opCode === 5) return x !== 0 ? y : undefined;
-  if (opCode === 6) return x === 0 ? y : undefined;
+  if (opCode === 5) return x !== 0 ? y : pointer;
+  if (opCode === 6) return x === 0 ? y : pointer;
   if (opCode === 7) return x < y ? 1 : 0;
   if (opCode === 8) return x == y ? 1 : 0;
 };
@@ -134,9 +235,6 @@ const data = parse(`${__dirname}/data.txt`)
   .split(',')
   .map(Number);
 
-const main = async () => {
-  console.log(`Day 5 Part 1 -- ${await day7part1(data)}`);
-  // console.log(`Day 5 Part 2 -- ${await day5part2(data)}`);
-};
-
-main();
+// console.log(`Day 7 Part 1.2 -- ${day7part1(data)}`);
+console.log(`Day 7 Part 1.2 -- ${day7part1_refactor(data)}`);
+console.log(`Day 5 Part 2 -- ${day7part2(data)}`);
