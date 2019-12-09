@@ -135,15 +135,14 @@ const day7part2 = (data = []) => {
   });
 
   sequences.forEach(sequence => {
-    let [a, b, c, d, e] = [...String(sequence)].map(Number);
-    const amplifiers = [...Array(5).keys()].map(i => createComputer(data));
-    let output = 0;
-    amplifiers.forEach((computer, i) => {
-      const sequenceInput = Number([...String(sequence)][i]);
-      computer.inputs.push(sequenceInput);
+    const [a, b, c, d, e] = [...String(sequence)].map(Number);
+    const amplifiers = [...String(sequence)].map(Number).map((s, i) => {
+      const computer = createComputer(data);
+      computer.inputs.push(s);
+      return computer;
     });
-    let [ampA, ampB, ampC, ampD, ampE] = amplifiers;
-    while (ampE.halted === false) {
+    let output = 0;
+    while (!amplifiers.slice(-1)[0].halted) {
       for (amplifier of amplifiers) {
         output = amplifier.compute(output);
       }
@@ -237,4 +236,4 @@ const data = parse(`${__dirname}/data.txt`)
 
 // console.log(`Day 7 Part 1.2 -- ${day7part1(data)}`);
 console.log(`Day 7 Part 1.2 -- ${day7part1_refactor(data)}`);
-console.log(`Day 5 Part 2 -- ${day7part2(data)}`);
+console.log(`Day 7 Part 2 -- ${day7part2(data)}`);
